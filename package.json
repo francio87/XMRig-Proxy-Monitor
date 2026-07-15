@@ -1,0 +1,20 @@
+{
+  "name": "xmrig-proxy-monitor",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npm run build && http-server ./public -a ${WEBUI_HOST:-127.0.0.1} -p 4173 -c-1",
+    "build": "npm run build:assets && npm run build:css",
+    "build:assets": "node ./scripts/build.mjs",
+    "build:css": "tailwindcss -i ./frontend/app.css -o ./public/market-dark.css --minify",
+    "watch:css": "npm run build:assets && tailwindcss -i ./frontend/app.css -o ./public/market-dark.css --watch",
+    "test:e2e": "npm run build && playwright test",
+    "capture:reference": "node ./scripts/capture-reference.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "@tailwindcss/cli": "^4.3.2",
+    "http-server": "^14.1.1",
+    "tailwindcss": "^4.3.2"
+  }
+}

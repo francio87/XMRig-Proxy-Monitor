@@ -1,0 +1,17 @@
+services:
+  workspace:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    command: >-
+      sh -c 'while [ ! -x node_modules/.bin/http-server ]; do sleep 1; done;
+      exec npm run dev'
+    working_dir: /workspaces/xmrig-proxy-monitor
+    environment:
+      WEBUI_HOST: 0.0.0.0
+    volumes:
+      - .:/workspaces/xmrig-proxy-monitor:cached
+      - node_modules:/workspaces/xmrig-proxy-monitor/node_modules
+
+volumes:
+  node_modules:

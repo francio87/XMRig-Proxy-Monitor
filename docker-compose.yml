@@ -1,0 +1,25 @@
+services:
+  xmrig-proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile.xmrig-proxy-dev
+    image: xmrig-proxy-dev:local
+    container_name: xmrig-proxy-dev
+    restart: unless-stopped
+    command:
+      - --url=${XMRIG_UPSTREAM_URL:-pool.supportxmr.com:3333}
+      - --user=${XMRIG_UPSTREAM_USER:-CHANGE_ME}
+      - --pass=${XMRIG_UPSTREAM_PASSWORD:-x}
+      - --coin=${XMRIG_COIN:-monero}
+      - --tls
+      - --bind=0.0.0.0:3333
+      - --http-host=0.0.0.0
+      - --http-port=18080
+      - --http-access-token=${XMRIG_API_TOKEN:-xmrig-proxy-dev-token-change-me}
+      - --donate-level=0
+      - --no-color
+    ports:
+      # API only for the local browser during development.
+      - "127.0.0.1:${XMRIG_API_PORT:-18080}:18080"
+      # Optional: lets a local XMRig client connect to the development proxy.
+      - "127.0.0.1:${XMRIG_STRATUM_PORT:-3333}:3333"
