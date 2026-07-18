@@ -1,7 +1,7 @@
 const REQUEST_TIMEOUT_MS = 8_000;
 
 export function getEndpoint(config) {
-  return `${config.protocol}://${config.host.trim()}:${config.port}`;
+  return `${config.protocol}://${config.endpoint.trim()}`;
 }
 
 function headers(config) {
@@ -35,12 +35,26 @@ export async function getJson(path, config) {
       throw new Error(`The proxy did not respond within ${REQUEST_TIMEOUT_MS / 1_000} seconds`);
     }
     if (error instanceof TypeError) {
-      throw new Error('Network request failed. Check host, port, CORS, and HTTP/HTTPS.');
+      throw new Error('Network request failed. Check the proxy address, CORS, and HTTP/HTTPS. Ensure the Proxy allows this dashboard origin and Authorization header.');
     }
     throw error;
   } finally {
     window.clearTimeout(timeout);
   }
+}
+
+const WORKER_FIELDS = [
+  'name', 'ip', 'connections', 'accepted', 'rejected', 'invalid', 'hashes',
+  'lastSubmittedHash', 'hashrate1m', 'hashrate10m', 'hashrate1h', 'hashrate12h', 'hashrate24h',
+];
+
+// /1/workers rows are positional; keep this API contract in one place.
+export function parseWorkers(payload) {
+  if (!Array.isArray(payload?.workers)) return [];
+
+  return payload.workers.map((row) => Object.fromEntries(
+    WORKER_FIELDS.map((field, index) => [field, row[index]]),
+  ));
 }
 
 export function parseMiners(payload) {
@@ -55,6 +69,7 @@ export function parseMiners(payload) {
       rx: Number(row[index('rx')] || 0),
       state: row[index('state')],
       diff: row[index('diff')],
+      user: row[index('user')] || '—',
       rigId: row[index('rig_id')] || '—',
       agent: row[index('agent')] || '—',
     }))

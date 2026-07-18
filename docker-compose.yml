@@ -6,18 +6,15 @@ services:
     image: xmrig-proxy-dev:local
     container_name: xmrig-proxy-dev
     restart: unless-stopped
-    command:
-      - --url=${XMRIG_UPSTREAM_URL:-pool.supportxmr.com:3333}
-      - --user=${XMRIG_UPSTREAM_USER:-CHANGE_ME}
-      - --pass=${XMRIG_UPSTREAM_PASSWORD:-x}
-      - --coin=${XMRIG_COIN:-monero}
-      - --tls
-      - --bind=0.0.0.0:3333
-      - --http-host=0.0.0.0
-      - --http-port=18080
-      - --http-access-token=${XMRIG_API_TOKEN:-xmrig-proxy-dev-token-change-me}
-      - --donate-level=0
-      - --no-color
+    environment:
+      XMRIG_UPSTREAM_URL: ${XMRIG_UPSTREAM_URL:-gulf.moneroocean.stream:20128}
+      XMRIG_UPSTREAM_HASHVAULT_URL: ${XMRIG_UPSTREAM_HASHVAULT_URL:-pool.hashvault.pro:443}
+      XMRIG_UPSTREAM_SUPPORTXMR_URL: ${XMRIG_UPSTREAM_SUPPORTXMR_URL:-pool.supportxmr.com:443}
+      XMRIG_UPSTREAM_USER: ${XMRIG_UPSTREAM_USER:-CHANGE_ME}
+      XMRIG_UPSTREAM_PASSWORD: ${XMRIG_UPSTREAM_PASSWORD:-x}
+      XMRIG_COIN: ${XMRIG_COIN:-monero}
+      XMRIG_API_PORT: ${XMRIG_API_PORT:-18080}
+      XMRIG_API_TOKEN: ${XMRIG_API_TOKEN:-xmrig-proxy-dev-token-change-me}
     ports:
       # API only for the local browser during development.
       - "127.0.0.1:${XMRIG_API_PORT:-18080}:18080"

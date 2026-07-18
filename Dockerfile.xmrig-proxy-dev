@@ -21,7 +21,9 @@ RUN cmake .. -DWITH_HTTP=ON -DWITH_TLS=ON \
 
 FROM alpine:3.20
 
-RUN apk add --no-cache ca-certificates libstdc++ libuv openssl
+RUN apk add --no-cache ca-certificates jq libstdc++ libuv openssl
 COPY --from=build /src/build/xmrig-proxy /usr/local/bin/xmrig-proxy
+COPY scripts/xmrig-proxy-entrypoint.sh /usr/local/bin/xmrig-proxy-entrypoint
+RUN chmod +x /usr/local/bin/xmrig-proxy-entrypoint
 
-ENTRYPOINT ["xmrig-proxy"]
+ENTRYPOINT ["/usr/local/bin/xmrig-proxy-entrypoint"]
