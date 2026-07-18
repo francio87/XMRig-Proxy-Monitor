@@ -1,0 +1,107 @@
+name: Build release package
+
+on:
+  # Releases are deliberately started only from the GitHub Actions UI.
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Semantic version increment
+        required: true
+        default: patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+# Needed to create the tag and GitHub Release with the generated ZIP attached.
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build and publish static package
+    # Packages may be built only from the main branch.
+    if: github.ref_name == 'main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source and tags
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install build dependencies
+        run: npm ci
+
+      - name: Build static WebUI
+        run: npm run build
+
+      - name: Calculate prerelease version
+        id: version
+        env:
+          BUMP: ${{ inputs.bump }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          baseline=$(node --input-type=module -e "import pkg from './package.json' with { type: 'json' }; console.log(pkg.version)")
+          latest_tag=$(git tag --list 'v[0-9]*' --sort=-version:refname | head -n 1 || true)
+          latest_version=${latest_tag#v}
+          latest_version=${latest_version%%-*}
+          current_version=${latest_version:-$baseline}
+
+          if ! [[ "$current_version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            echo "Invalid semantic version: $current_version" >&2
+            exit 1
+          fi
+
+          major=${BASH_REMATCH[1]}
+          minor=${BASH_REMATCH[2]}
+          patch=${BASH_REMATCH[3]}
+          case "$BUMP" in
+            major) ((major += 1)); minor=0; patch=0 ;;
+            minor) ((minor += 1)); patch=0 ;;
+            patch) ((patch += 1)) ;;
+            *) echo "Unsupported version increment: $BUMP" >&2; exit 1 ;;
+          esac
+
+          version="$major.$minor.$patch-dev.$GITHUB_RUN_NUMBER"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+
+      - name: Create distributable ZIP
+        id: package
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_name="xmrig-proxy-monitor-v${VERSION}.zip"
+          (cd public && zip -r "../${package_name}" .)
+          echo "name=${package_name}" >> "$GITHUB_OUTPUT"
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE_NAME: ${{ steps.package.outputs.name }}
+          TAG: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release create "$TAG" "$PACKAGE_NAME" \
+            --target "$GITHUB_SHA" \
+            --title "v${VERSION} pre-release" \
+            --generate-notes \
+            --prerelease \
+            --latest=false

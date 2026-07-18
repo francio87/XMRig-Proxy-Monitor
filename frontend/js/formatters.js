@@ -45,5 +45,6 @@ export function formatDifficulty(value) {
 }
 
 export function minerState(value) {
-  return Number(value) === 2 ? 'Active' : `State ${value ?? '—'}`;
+  const states = ['Waiting for login', 'Waiting for job', 'Ready', 'Closing'];
+  return states[Number(value)] || `State ${value ?? '—'}`;
 }

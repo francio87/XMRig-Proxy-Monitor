@@ -3,6 +3,8 @@ import { defineConfig, devices } from '@playwright/test'
 export default defineConfig({
   testDir: './tests',
   timeout: 30_000,
+  // Run one test sequence per viewport. Higher intra-project parallelism was
+  // benchmarked here and slowed the suite because Chromium startup saturated resources.
   fullyParallel: false,
   reporter: [['list'], ['html', { open: 'never' }]],
   expect: {

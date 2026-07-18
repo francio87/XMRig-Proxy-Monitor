@@ -70,9 +70,8 @@ html[data-dashboard-theme="market-dark"] .stat.primary {
 html[data-dashboard-theme="market-dark"] .value,
 html[data-dashboard-theme="market-dark"] .hashrate-value,
 html[data-dashboard-theme="market-dark"] .shares-value,
-html[data-dashboard-theme="market-dark"] .node-value,
-html[data-dashboard-theme="market-dark"] td {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+html[data-dashboard-theme="market-dark"] .node-value {
+  font-variant-numeric: tabular-nums lining-nums;
 }
 
 html[data-dashboard-theme="market-dark"] .badge,
