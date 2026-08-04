@@ -15,37 +15,33 @@ See your proxy status, hashrate, workers, shares, and active miner connections f
 - 🖥️ Responsive dark interface
 
 
-## 🛠️ Development quick start
+## 🛠️ Development with Docker Compose
 
-This section is for contributors who want to work on the project.
-Docker and the VS Code **Dev Containers** extension are not required to use a published dashboard build.
+Copy the example environment and set `XMRIG_UPSTREAM_USER` to a valid pool wallet or user. The development Proxy uses the configured upstream as primary, with HashVault and SupportXMR TLS pools as failover backups.
 
 ```bash
 cp .env.example .env
+# Edit .env and set XMRIG_UPSTREAM_USER.
+docker compose -f docker-compose.dev.yml up --build
 ```
 
-Set `XMRIG_UPSTREAM_USER` in `.env` to a valid pool wallet or user. The development Proxy uses the configured upstream as primary, with HashVault and SupportXMR TLS pools as failover backups; override their URLs in `.env` if required. Then open this folder in VS Code and run:
-
-> **Dev Containers: Rebuild and Reopen in Container**
-
-The development proxy and WebUI start automatically. Open:
-
-```text
-http://127.0.0.1:4173
-```
-
-Use these connection details in the dashboard:
-
-```text
-Proxy address: 127.0.0.1:18080
-Token:         value of XMRIG_API_TOKEN in .env
-```
+This starts a Node 22 WebUI development container and the local XMRig Proxy. Open `http://127.0.0.1:4173`; use `127.0.0.1:18080` and the `XMRIG_API_TOKEN` from `.env` in the dashboard. Source changes are mounted into the WebUI container; restart that service after changing source files to rebuild the static assets.
 
 ### Development fixture menu
 
-`npm run dev` builds a development-only fixture menu. Select a scenario from **Dev fixture** in the header (or use `?fixture=operational`) to inspect operational, low-miner, offline, mixed-rig, and API-error states without calling a Proxy. Fixture chart history is isolated from the saved live history. Return the selector to **Live Proxy** to restore the saved connection settings and chart history.
+The development Compose stack runs `npm run dev`, which includes the development-only **Dev fixture** menu. Select a scenario in the header (or use `?fixture=operational`) to inspect operational, low-miner, offline, mixed-rig, large-fleet, and API-error states without calling a Proxy. **Large fleet · 30 workers** has 12 online, 9 recently offline, and 9 offline workers with varied hashrates and share counters. Fixture chart history is isolated from the saved live history. Return the selector to **Live Proxy** to restore saved connection settings and chart history.
 
-Fixtures are copied only by `npm run build:dev`; `npm run build` and the published static package do not contain the fixture script or menu.
+## 🐳 Standard Docker Compose stack
+
+The standard stack builds the production static site and serves it with `nginx:alpine`, alongside the XMRig Proxy:
+
+```bash
+cp .env.example .env
+# Edit .env and set XMRIG_UPSTREAM_USER.
+docker compose up --build -d
+```
+
+It serves the WebUI on `http://127.0.0.1:4173` and the Proxy API on `http://127.0.0.1:18080`. No fixture assets are included. By default, the WebUI, API, and Stratum ports are bound to localhost. For a trusted LAN, set `WEBUI_BIND`, `XMRIG_API_BIND`, and, if needed, `XMRIG_STRATUM_BIND` in `.env`; ensure the browser can reach both the WebUI and API.
 
 ## 🚀 Build and deploy
 

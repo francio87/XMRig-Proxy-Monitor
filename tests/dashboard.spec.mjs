@@ -33,6 +33,16 @@ test('renders XMRig Proxy data after a direct browser connection', async ({ page
   await page.screenshot({ path: testInfo.outputPath('dashboard.png'), fullPage: true })
 })
 
+test('renders the 30-worker large-fleet development fixture', async ({ page }) => {
+  await page.goto('/?fixture=large-fleet')
+
+  await expect(page.locator('#workersTable .worker-row')).toHaveCount(30)
+  await expect(page.locator('#workersTable .worker-status.online')).toHaveCount(12)
+  await expect(page.locator('#workersTable .worker-status.recently-offline')).toHaveCount(9)
+  await expect(page.locator('#workersTable .worker-status.offline')).toHaveCount(9)
+  await expect(page.locator('#workerCount')).toHaveText('12 active')
+})
+
 test('shows warning and error proxy states from the summary', async ({ page }) => {
   let summary = { ...fixtureSummary, miners: { now: 0, max: 2 } }
   await mockProxyApi(page, fixtureWorkers, fixtureMiners, () => summary)
