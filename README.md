@@ -65,6 +65,31 @@ python3 -m http.server 8080
 
 Open `http://127.0.0.1:8080`. For public use, serve site with HTTPS through Nginx, Caddy, or static hosting.
 
+### Connect an existing XMRig Proxy
+
+For an existing Proxy, enable HTTP API with a token. Port is configurable; `18080` is this project's default.
+
+```json
+"http": {
+  "enabled": true,
+  "host": "127.0.0.1",
+  "port": 18080,
+  "access-token": "replace-with-a-long-random-token",
+  "restricted": true
+}
+```
+
+Verify it before opening dashboard:
+
+```bash
+curl -H 'Authorization: Bearer replace-with-a-long-random-token' \
+  http://127.0.0.1:18080/1/summary
+```
+
+Enter same host, port, protocol, and token in dashboard. Keep API on localhost, VPN, or trusted LAN. For remote access, use HTTPS for both dashboard and API.
+
+Docker Compose configures this API automatically. Set `XMRIG_API_PORT` in `.env` to change its port.
+
 ### Direct API requirements
 
 Dashboard browser — not machine serving static files — must reach Proxy API.
