@@ -1,10 +1,10 @@
-import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 
 const outputDirectory = 'public';
 const developmentFixtures = process.argv.includes('--dev-fixtures');
 
-await rm(outputDirectory, { recursive: true, force: true });
 await mkdir(outputDirectory, { recursive: true });
+await Promise.all((await readdir(outputDirectory)).map((entry) => rm(`${outputDirectory}/${entry}`, { recursive: true, force: true })));
 await Promise.all([
   cp('frontend/js', `${outputDirectory}/js`, { recursive: true }),
   cp('frontend/vendor', `${outputDirectory}/vendor`, { recursive: true }),
