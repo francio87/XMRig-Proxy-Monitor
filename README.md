@@ -1,7 +1,5 @@
 # ⛏️ XMRig Proxy Monitor
 
-![XMRig Proxy Monitor dashboard](docs/images/dashboard.png)
-
 ⚡ Live XMRig Proxy dashboard from browser
 📊 Workers, hashrate, shares, and active miner diagnostics
 🐳 Static site or local Docker Compose stack
@@ -16,6 +14,8 @@ XMRig Proxy Monitor is a lightweight dashboard for one [XMRig Proxy](https://git
 - 🔐 Optional Proxy Bearer-token support
 - 🔄 Auto-refresh: 10 seconds, 30 seconds, 1 minute, or 5 minutes
 - 🖥️ Responsive Market Dark interface
+
+![XMRig Proxy Monitor dashboard](docs/images/dashboard.png)
 
 ## Quickstart: Docker Compose
 
@@ -126,3 +126,12 @@ npm run build
 - Dashboard-only token is stored in browser local storage: use only personal or trusted-LAN dashboard.
 - Development Proxy uses configured primary pool plus HashVault and SupportXMR TLS failovers.
 - Development fixture menu is not included in production build.
+
+## License
+
+Licensed under [GNU AGPL-3.0-or-later](LICENSE). Derivatives distributed or offered as network services must provide corresponding source code under same license.
+
+## Disclaimer
+
+- ⚠️ Provided **as-is**, without warranties. Use at your own risk and validate data before relying on it.
+- 🤖 This project was developed with significant AI assistance.
