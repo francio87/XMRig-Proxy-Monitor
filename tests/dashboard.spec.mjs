@@ -6,6 +6,10 @@ const proxy = {
   token: 'xmrig-proxy-dev-token-change-me',
 }
 
+function desktopOnly(testInfo) {
+  test.skip(testInfo.project.name !== 'desktop', 'State logic does not vary by viewport.')
+}
+
 async function connectToDevelopmentProxy(page) {
   await page.goto('/')
   const dialog = page.getByRole('dialog')
@@ -43,7 +47,8 @@ test('renders the 30-worker large-fleet development fixture', async ({ page }) =
   await expect(page.locator('#workerCount')).toHaveText('12 active')
 })
 
-test('shows warning and error proxy states from the summary', async ({ page }) => {
+test('shows warning and error proxy states from the summary', async ({ page }, testInfo) => {
+  desktopOnly(testInfo)
   let summary = { ...fixtureSummary, miners: { now: 0, max: 2 } }
   await mockProxyApi(page, fixtureWorkers, fixtureMiners, () => summary)
   await connectToDevelopmentProxy(page)
@@ -56,7 +61,8 @@ test('shows warning and error proxy states from the summary', async ({ page }) =
   await expect(page.locator('#proxyStatus')).toHaveClass(/is-error/)
 })
 
-test('submits a valid connection form with Enter', async ({ page }) => {
+test('submits a valid connection form with Enter', async ({ page }, testInfo) => {
+  desktopOnly(testInfo)
   await mockProxyApi(page)
   await page.goto('/')
   await page.getByLabel('Proxy address (IP or host:port)').fill(`${proxy.host}:${proxy.port}`)
@@ -85,7 +91,8 @@ test('maps every positional worker field before rendering it', async ({ page }, 
   })
 })
 
-test('validates the connection before saving it', async ({ page }) => {
+test('validates the connection before saving it', async ({ page }, testInfo) => {
+  desktopOnly(testInfo)
   await mockUnauthorizedProxyApi(page)
   await page.goto('/')
   await page.getByLabel('Proxy address (IP or host:port)').fill(`${proxy.host}:${proxy.port}`)
@@ -98,7 +105,8 @@ test('validates the connection before saving it', async ({ page }) => {
   await expect.poll(() => page.evaluate(() => localStorage.getItem('xmrig-proxy-monitor.connection.v1'))).toBeNull()
 })
 
-test('highlights the proxy address after a network validation failure', async ({ page }) => {
+test('highlights the proxy address after a network validation failure', async ({ page }, testInfo) => {
+  desktopOnly(testInfo)
   await mockNetworkFailure(page)
   await page.goto('/')
   await page.getByLabel('Proxy address (IP or host:port)').fill(`${proxy.host}:${proxy.port}`)
@@ -109,7 +117,8 @@ test('highlights the proxy address after a network validation failure', async ({
   await expect(page.getByLabel('Proxy address (IP or host:port)')).toHaveClass(/has-error/)
 })
 
-test('highlights the token for a forbidden response', async ({ page }) => {
+test('highlights the token for a forbidden response', async ({ page }, testInfo) => {
+  desktopOnly(testInfo)
   await mockForbiddenProxyApi(page)
   await page.goto('/')
   await page.getByLabel('Proxy address (IP or host:port)').fill(`${proxy.host}:${proxy.port}`)
@@ -120,7 +129,8 @@ test('highlights the token for a forbidden response', async ({ page }) => {
   await expect(page.getByLabel('Bearer token (optional)')).toHaveClass(/has-error/)
 })
 
-test('reports invalid JSON against the proxy address', async ({ page }) => {
+test('reports invalid JSON against the proxy address', async ({ page }, testInfo) => {
+  desktopOnly(testInfo)
   await mockInvalidJsonProxyApi(page)
   await page.goto('/')
   await page.getByLabel('Proxy address (IP or host:port)').fill(`${proxy.host}:${proxy.port}`)
@@ -140,7 +150,8 @@ test('reports a proxy timeout', async ({ page }, testInfo) => {
   await expect(page.locator('#connectionResult')).toContainText('The proxy did not respond within 8 seconds', { timeout: 12_000 })
 })
 
-test('selects and persists the auto-refresh interval', async ({ page }) => {
+test('selects and persists the auto-refresh interval', async ({ page }, testInfo) => {
+  desktopOnly(testInfo)
   await mockProxyApi(page)
   await connectToDevelopmentProxy(page)
 
@@ -151,7 +162,8 @@ test('selects and persists the auto-refresh interval', async ({ page }) => {
   await expect(page.getByLabel('Auto-refresh interval')).toHaveValue('30000')
 })
 
-test('keeps an empty workers response usable', async ({ page }) => {
+test('keeps an empty workers response usable', async ({ page }, testInfo) => {
+  desktopOnly(testInfo)
   await mockProxyApi(page, { ...fixtureWorkers, workers: [] })
   await connectToDevelopmentProxy(page)
 
@@ -159,7 +171,8 @@ test('keeps an empty workers response usable', async ({ page }) => {
   await expect(page.locator('#workersTable')).toContainText('No workers connected.')
 })
 
-test('classifies and hides disconnected workers by the configured thresholds', async ({ page }) => {
+test('classifies and hides disconnected workers by the configured thresholds', async ({ page }, testInfo) => {
+  desktopOnly(testInfo)
   const now = Date.now()
   await mockProxyApi(page, {
     ...fixtureWorkers,
@@ -177,7 +190,8 @@ test('classifies and hides disconnected workers by the configured thresholds', a
   await expect(page.locator('#workersTable')).not.toContainText('rig-hidden')
 })
 
-test('keeps a worker online when its active miner is connected but its share timestamp is stale', async ({ page }) => {
+test('keeps a worker online when its active miner is connected but its share timestamp is stale', async ({ page }, testInfo) => {
+  desktopOnly(testInfo)
   await mockProxyApi(page, {
     ...fixtureWorkers,
     workers: [['rig-alpha', '192.168.1.10', 0, 0, 0, 0, 0, Date.now() - 600_000, 0, 0, 0, 0, 0]],
@@ -189,7 +203,8 @@ test('keeps a worker online when its active miner is connected but its share tim
   await expect(page.locator('#workerCount')).toHaveText('1 active')
 })
 
-test('does not keep an old rig online merely because a new rig shares its IP', async ({ page }) => {
+test('does not keep an old rig online merely because a new rig shares its IP', async ({ page }, testInfo) => {
+  desktopOnly(testInfo)
   const now = Date.now()
   await mockProxyApi(page, {
     mode: 'rig_id',
@@ -208,7 +223,8 @@ test('does not keep an old rig online merely because a new rig shares its IP', a
   await expect(page.locator('#workerCount')).toHaveText('1 active')
 })
 
-test('keeps a worker recently offline after it disconnects before submitting a share', async ({ page }) => {
+test('keeps a worker recently offline after it disconnects before submitting a share', async ({ page }, testInfo) => {
+  desktopOnly(testInfo)
   let workers = { mode: 'rig_id', workers: [['new-rig', '192.168.1.10', 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]] }
   let miners = { format: fixtureMiners.format, miners: [[1, '192.168.1.10', 0, 0, 2, 0, 'wallet', 'secret', 'new-rig', 'XMRig/6.26.0']] }
   await mockProxyApi(page, () => workers, () => miners)
@@ -222,7 +238,8 @@ test('keeps a worker recently offline after it disconnects before submitting a s
   await expect(page.locator('#workerCount')).toHaveText('0 active')
 })
 
-test('retains only the latest 180 chart samples', async ({ page }) => {
+test('retains only the latest 180 chart samples', async ({ page }, testInfo) => {
+  desktopOnly(testInfo)
   await mockProxyApi(page)
   await connectToDevelopmentProxy(page)
   await page.evaluate(() => localStorage.setItem('xmrig-proxy-monitor.history.v1', JSON.stringify(Array.from({ length: 180 }, (_, index) => ({ timestamp: index, hashrate1m: index, hashrate10m: index })))))
@@ -231,7 +248,8 @@ test('retains only the latest 180 chart samples', async ({ page }) => {
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('xmrig-proxy-monitor.history.v1')).length)).toBe(180)
 })
 
-test('continues rendering when chart history cannot be saved', async ({ page }) => {
+test('continues rendering when chart history cannot be saved', async ({ page }, testInfo) => {
+  desktopOnly(testInfo)
   await mockProxyApi(page)
   await connectToDevelopmentProxy(page)
   await page.evaluate(() => {
@@ -246,7 +264,8 @@ test('continues rendering when chart history cannot be saved', async ({ page }) 
   await expect(page.locator('#proxyStatus')).toHaveText('System operational')
 })
 
-test('forgets saved settings from the connection dialog', async ({ page }) => {
+test('forgets saved settings from the connection dialog', async ({ page }, testInfo) => {
+  desktopOnly(testInfo)
   await mockProxyApi(page)
   await connectToDevelopmentProxy(page)
   await page.getByRole('button', { name: 'Connection settings' }).click()
