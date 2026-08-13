@@ -2,8 +2,6 @@
 # currently an obsolete 2.x image and does not expose the /1/* HTTP API.
 FROM alpine:3.20 AS build
 
-ARG XMRIG_PROXY_VERSION=v6.26.0
-
 RUN apk add --no-cache \
     build-base \
     cmake \
@@ -12,7 +10,7 @@ RUN apk add --no-cache \
     linux-headers \
     openssl-dev
 
-RUN git clone --depth 1 --branch "${XMRIG_PROXY_VERSION}" \
+RUN git clone --depth 1 --branch v6.26.0 \
     https://github.com/xmrig/xmrig-proxy.git /src
 
 WORKDIR /src/build

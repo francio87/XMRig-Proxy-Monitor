@@ -68,18 +68,6 @@
       word-break: break-word;
     }
 
-    .badge-online {
-      background: var(--success-dim);
-      border-color: rgba(0, 0, 0, 0.06);
-      color: var(--success);
-    }
-
-    .badge-warning {
-      background: var(--danger-dim);
-      border-color: rgba(0, 0, 0, 0.06);
-      color: var(--danger);
-    }
-
     .reliability-banner {
       border: 1px solid color-mix(in srgb, var(--danger) 30%, var(--border));
       background: var(--danger-dim);
@@ -312,33 +300,6 @@
 
     .stat.shares-compact .label {
       margin-bottom: .08rem;
-    }
-
-    .label-with-badge {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: .45rem;
-    }
-
-    .label-badge {
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: .08rem .34rem;
-      background: color-mix(in srgb, var(--text-muted) 10%, transparent);
-      color: var(--text-muted);
-      font-size: .62rem;
-      font-weight: 500;
-      letter-spacing: 0;
-      line-height: 1.2;
-      text-transform: none;
-      white-space: nowrap;
-    }
-
-    .label-badge.update-available {
-      border-color: color-mix(in srgb, var(--danger) 55%, var(--border));
-      background: var(--danger-dim);
-      color: var(--danger);
     }
 
     .table-wrap {

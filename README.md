@@ -1,85 +1,137 @@
 # ⛏️ XMRig Proxy Monitor
 
-A small, browser-based dashboard for an **XMRig Proxy** instance.
+⚡ Live XMRig Proxy dashboard from browser
+📊 Workers, hashrate, shares, and active miner diagnostics
+🐳 Static site or local Docker Compose stack
 
-See your proxy status, hashrate, workers, shares, and active miner connections from a clean local dashboard — no application backend or database required.
+XMRig Proxy Monitor is a lightweight dashboard for one [XMRig Proxy](https://github.com/xmrig/xmrig-proxy) endpoint. It has no application backend or database: browser calls Proxy HTTP API directly, while settings and chart history remain in browser local storage.
 
-## ✨ Highlights
+## Highlights
 
-- 📊 Live 1m and 10m hashrate chart
-- 👷 Worker status, hashrate, and last-seen information
-- 🔌 Active miner connection diagnostics
-- 🔐 Optional XMRig Proxy Bearer-token support
-- 💾 Settings, refresh interval, and chart history stay in your browser
-- 🔄 Configurable auto-refresh: 10s, 30s, 1m, or 5m
-- 🖥️ Responsive dark interface
+- 📈 Local 1m and 10m hashrate chart, retaining latest 180 samples
+- 👷 Worker state: online, recently offline, and offline
+- 🔌 Active miner diagnostics, without rendering or storing miner passwords
+- 🔐 Optional Proxy Bearer-token support
+- 🔄 Auto-refresh: 10 seconds, 30 seconds, 1 minute, or 5 minutes
+- 🖥️ Responsive Market Dark interface
 
+![XMRig Proxy Monitor dashboard](docs/images/dashboard.png)
 
-## 🛠️ Development quick start
+## Quickstart: Docker Compose
 
-This section is for contributors who want to work on the project.
-Docker and the VS Code **Dev Containers** extension are not required to use a published dashboard build.
+Copy environment template and set `XMRIG_UPSTREAM_USER` to valid pool wallet or user:
 
 ```bash
 cp .env.example .env
+# Edit .env: set XMRIG_UPSTREAM_USER.
+docker compose up --build -d
 ```
 
-Set `XMRIG_UPSTREAM_USER` in `.env` to a valid pool wallet or user. The development Proxy uses the configured upstream as primary, with HashVault and SupportXMR TLS pools as failover backups; override their URLs in `.env` if required. Then open this folder in VS Code and run:
-
-> **Dev Containers: Rebuild and Reopen in Container**
-
-The development proxy and WebUI start automatically. Open:
+Open dashboard:
 
 ```text
 http://127.0.0.1:4173
 ```
 
-Use these connection details in the dashboard:
+At first visit enter:
 
-```text
-Proxy address: 127.0.0.1:18080
-Token:         value of XMRIG_API_TOKEN in .env
+- **Proxy address:** `127.0.0.1:18080`
+- **Protocol:** `HTTP`
+- **Bearer token:** `XMRIG_API_TOKEN` from `.env`
+
+Use **Save and connect**. Standard stack builds production static assets; fixture controls are excluded.
+
+### Ports
+
+| Service | Default | Notes |
+| --- | --- | --- |
+| Dashboard | `127.0.0.1:4173` | Browser UI |
+| Proxy API | `127.0.0.1:18080` | Direct browser API access |
+| Stratum | `127.0.0.1:3333` | Test miners |
+
+All bind to localhost by default. For trusted LAN use, set `WEBUI_BIND`, `XMRIG_API_BIND`, and optionally `XMRIG_STRATUM_BIND` in `.env`. Browser must reach both dashboard and API.
+
+## Static release deployment
+
+GitHub Release ZIP files contain static-site contents only. Extract them under any static web server or hosting provider; no Node.js, Docker, or application backend needed at runtime.
+
+For local test only:
+
+```bash
+unzip xmrig-proxy-monitor-v*.zip -d xmrig-monitor
+cd xmrig-monitor
+python3 -m http.server 8080
 ```
 
-### Development fixture menu
+Open `http://127.0.0.1:8080`. For public use, serve site with HTTPS through Nginx, Caddy, or static hosting.
 
-`npm run dev` builds a development-only fixture menu. Select a scenario from **Dev fixture** in the header (or use `?fixture=operational`) to inspect operational, low-miner, offline, mixed-rig, and API-error states without calling a Proxy. Fixture chart history is isolated from the saved live history. Return the selector to **Live Proxy** to restore the saved connection settings and chart history.
+### Direct API requirements
 
-Fixtures are copied only by `npm run build:dev`; `npm run build` and the published static package do not contain the fixture script or menu.
+Dashboard browser — not machine serving static files — must reach Proxy API.
 
-## 🚀 Build and deploy
+- Configure Proxy or reverse proxy CORS for dashboard origin.
+- Allow `Authorization` header when Bearer token is used.
+- HTTPS dashboard requires HTTPS API; browsers block HTTPS-to-HTTP mixed content.
+- Do not open `index.html` with `file://`; root-relative assets and browser origin rules require web server.
 
-Build the static site with:
+## Build from source
 
 ```bash
 npm ci
 npm run build
 ```
 
-Deploy the **contents** of generated `public/` to a static web server or static hosting service. Do not open `index.html` directly with `file://`: the site uses root-relative assets and browser origin/CORS rules apply.
+Deploy contents of generated `public/` directory. Build output is ignored by Git and contains no development fixture assets.
 
-The browser, not the static host, must be able to reach the configured Proxy API. Configure XMRig Proxy or a reverse proxy to allow the dashboard origin through CORS, including the `Authorization` header when using a token. An HTTPS dashboard cannot call an HTTP API because browsers block mixed content; use HTTPS for the API or place it behind an HTTPS reverse proxy.
+## Development
 
-## 📡 XMRig Proxy API
+Start reproducible development stack:
 
-The monitor's supported XMRig Proxy v6.26.0 endpoints, field mappings, privacy rules, and API limitations (including unavailable per-pool telemetry) are documented in [docs/xmrig-proxy-api.md](docs/xmrig-proxy-api.md).
+```bash
+cp .env.example .env
+# Edit .env: set XMRIG_UPSTREAM_USER.
+docker compose -f docker-compose.dev.yml up --build
+```
 
-## 🔒 Security
+Or run WebUI directly after `npm ci`:
 
-This is intended for personal or trusted-LAN use. The dashboard stores an optional API token in browser local storage and calls the proxy API directly from the browser.
+```bash
+npm run dev
+```
 
-The bundled development services are bound to `127.0.0.1` only. Do not expose them publicly without using your own token and HTTPS/reverse-proxy setup.
+Open `http://127.0.0.1:4173`. Development build includes **Dev fixture** selector in header. It provides synthetic operational, warning, offline, mixed-rig, large-fleet, and API-error states without calling Proxy. Return selector to **Live Proxy** before testing real endpoint.
 
-## 🧪 Checks
+## API and privacy
+
+Dashboard requests these XMRig Proxy v6.26.0 endpoints every refresh:
+
+- `GET /1/summary`
+- `GET /1/workers`
+- `GET /1/miners`
+
+Token, when configured, is sent only as `Authorization: Bearer <token>`. Dashboard never renders, persists, or logs `password` fields returned by `/1/miners`.
+
+See [XMRig Proxy API notes](docs/xmrig-proxy-api.md) for payload mapping, worker lifecycle behavior, and API limits.
+
+## Checks
 
 ```bash
 npm run test:e2e
 npm run build
 ```
 
-## 📌 Notes
+## Notes
 
-- `public/` is generated by the build and is not committed.
-- GitHub Releases contain the generated static site only; npm is required only to build it from source.
-- An empty worker list is normal until a miner connects to the proxy.
-- The development Stratum endpoint is `127.0.0.1:3333`.
+- Empty worker list is normal until miner connects.
+- Dashboard-only token is stored in browser local storage: use only personal or trusted-LAN dashboard.
+- Development Proxy uses configured primary pool plus HashVault and SupportXMR TLS failovers.
+- Development fixture menu is not included in production build.
+
+## License
+
+Licensed under [GNU AGPL-3.0-or-later](LICENSE). Derivatives distributed or offered as network services must provide corresponding source code under same license.
+
+## Disclaimer
+
+- ⚠️ Provided **as-is**, without warranties. Use at your own risk and validate data before relying on it.
+- 🤖 This project was developed with significant AI assistance.

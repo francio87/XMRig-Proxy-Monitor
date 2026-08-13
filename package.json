@@ -10,8 +10,7 @@
     "build:assets": "node ./scripts/build.mjs",
     "build:assets:dev": "node ./scripts/build.mjs --dev-fixtures",
     "build:css": "tailwindcss -i ./frontend/app.css -o ./public/market-dark.css --minify",
-    "watch:css": "npm run build:assets && tailwindcss -i ./frontend/app.css -o ./public/market-dark.css --watch",
-    "test:e2e": "npm run build && playwright test",
+    "test:e2e": "npm run build:dev && playwright test",
     "capture:reference": "node ./scripts/capture-reference.mjs"
   },
   "devDependencies": {
