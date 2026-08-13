@@ -1,7 +1,9 @@
 name: Build release package
 
 on:
-  # Releases are deliberately started only from the GitHub Actions UI.
+  push:
+    branches:
+      - master
   workflow_dispatch:
     inputs:
       bump:
@@ -50,7 +52,7 @@ jobs:
       - name: Calculate prerelease version
         id: version
         env:
-          BUMP: ${{ inputs.bump }}
+          BUMP: ${{ inputs.bump || 'patch' }}
         shell: bash
         run: |
           set -euo pipefail
